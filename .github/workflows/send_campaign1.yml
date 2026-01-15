@@ -6,7 +6,7 @@ on:
       csv_path:
         description: 'Path to CSV file'
         required: false
-        default: 'users.csv'
+        default: 'users1.csv'
       limit:
         description: 'Limit number of rows to process (empty = all)'
         required: false
