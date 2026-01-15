@@ -43,6 +43,8 @@ jobs:
           pip install requests python-dotenv
       - name: Run dry-run script
         id: run-dry
+        env:
+          AISENSY_API_KEY: ${{ secrets.AISENSY_API_KEY != '' && secrets.AISENSY_API_KEY || vars.AISENSY_API_KEY }}
         run: |
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             python send_campaign.py "${{ github.event.inputs.csv_path }}" --delay 0.3 --dry-run --output "${{ github.event.inputs.output }}"
@@ -73,7 +75,7 @@ jobs:
           pip install requests python-dotenv
       - name: Run live send
         env:
-          AISENSY_API_KEY: ${{ secrets.AISENSY_API_KEY }}
+          AISENSY_API_KEY: ${{ secrets.AISENSY_API_KEY != '' && secrets.AISENSY_API_KEY || vars.AISENSY_API_KEY }}
         run: |
           args="--delay 0.3 --output \"${{ github.event.inputs.output }}\""
           if [ -n "${{ github.event.inputs.limit }}" ]; then args="$args --limit ${{ github.event.inputs.limit }}"; fi

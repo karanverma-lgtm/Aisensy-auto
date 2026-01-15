@@ -14,20 +14,33 @@ import json
 import argparse
 import logging
 import requests
+import sys
 from requests.adapters import HTTPAdapter, Retry
 from dotenv import load_dotenv
 
 # Load .env into environment (if a .env file is present in repo root)
 load_dotenv()
 
+# Configure logging early so that warnings/errors are visible immediately
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
 API_URL = "https://backend.aisensy.com/campaign/t1/api/v2"
-API_KEY = os.getenv("AISENSY_API_KEY", "<INSERT_API_KEY>")
-if not API_KEY or API_KEY == "<INSERT_API_KEY>":
-    logging.warning("AISENSY_API_KEY is not set. Please add it as an environment variable or in a .env file (AISENSY_API_KEY=...)")
+DEFAULT_API_KEY = "<INSERT_API_KEY>"
+API_KEY = os.getenv("AISENSY_API_KEY", DEFAULT_API_KEY)
+if not API_KEY or API_KEY == DEFAULT_API_KEY:
+    msg = (
+        "AISENSY_API_KEY is not set or is still the placeholder. "
+        "Set AISENSY_API_KEY in the environment or .env (AISENSY_API_KEY=...). "
+        "For GitHub Actions, set a Secret or Variable named AISENSY_API_KEY."
+    )
+    # Allow dry-run without a key, but abort for live sends
+    if "--dry-run" in sys.argv:
+        logging.warning(msg + " (Continuing because --dry-run was passed.)")
+    else:
+        logging.error(msg + " Exiting because live sends require an API key.")
+        sys.exit(1)
 MEDIA_URL = "https://www.erickson.co.in/wp-content/uploads/2026/01/TASC1and2.jpeg"
 DEFAULT_CC = "91"   # prefix if phone is 10 digits
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
 def normalize_phone(raw):
@@ -67,7 +80,11 @@ def build_payload(name, phone):
 def send_row(session, name, phone, dry_run=False):
     payload = build_payload(name, phone)
     if dry_run:
-        logging.info("DRY RUN -> %s : %s", name, json.dumps(payload, ensure_ascii=False))
+        # Redact API key when logging dry-run payloads
+        redacted = dict(payload)
+        if 'apiKey' in redacted:
+            redacted['apiKey'] = '<REDACTED>'
+        logging.info("DRY RUN -> %s : %s", name, json.dumps(redacted, ensure_ascii=False))
         return True, {"dry_run": True}
     try:
         r = session.post(API_URL, json=payload, timeout=15)
