@@ -7,10 +7,6 @@ on:
         description: 'Path to CSV file'
         required: false
         default: 'users.csv'
-      dry_run:
-        description: 'If true, run in dry-run mode'
-        required: false
-        default: 'true'
       limit:
         description: 'Limit number of rows to process (empty = all)'
         required: false
@@ -19,50 +15,14 @@ on:
         description: 'If set, only send to this number (normalized)'
         required: false
         default: ''
-      run_live:
-        description: 'If true, run the live send job after testing (must be true to send)'
-        required: false
-        default: 'false'
       output:
         description: 'Results output file'
         required: false
         default: 'results.csv'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests python-dotenv
-      - name: Run dry-run script
-        id: run-dry
-        env:
-          AISENSY_API_KEY: ${{ secrets.AISENSY_API_KEY != '' && secrets.AISENSY_API_KEY || vars.AISENSY_API_KEY }}
-        run: |
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            python send_campaign.py "${{ github.event.inputs.csv_path }}" --delay 0.3 --dry-run --output "${{ github.event.inputs.output }}"
-          else
-            python send_campaign.py "${{ github.event.inputs.csv_path }}" --delay 0.3 --output "${{ github.event.inputs.output }}"
-          fi
-        shell: bash
-      - name: Upload results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dry-run-results
-          path: ${{ github.event.inputs.output }}
-
   send:
     runs-on: ubuntu-latest
-    needs: test
-    if: ${{ github.event.inputs.run_live == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -86,5 +46,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: live-results
+          name: results
           path: ${{ github.event.inputs.output }}

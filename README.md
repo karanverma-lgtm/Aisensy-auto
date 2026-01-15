@@ -16,18 +16,14 @@ The script uses `python-dotenv` to load `.env` automatically; `.env` is included
 ## GitHub Actions
 A workflow at `.github/workflows/send_campaign.yml` provides a `workflow_dispatch` trigger with inputs:
 - `csv_path` (default: `users.csv`)
-- `dry_run` (default: `true`)
 - `limit` (optional)
 - `test_number` (optional)
-- `run_live` (default: `false`) — set to `true` to run the live send job
 - `output` (default: `results.csv`)
 
 ### How it works
-- Use the *test* job to run the script in dry-run mode and upload `results.csv` as an artifact.
-- If you set `run_live` to `true` when dispatching, the *send* job will run using `AISENSY_API_KEY` and upload the live results.
+- The *send* job runs using `AISENSY_API_KEY` and uploads results as an artifact.
 
 ## Safety tips
-- Always perform a dry-run first.
 - Use `limit` or `test_number` to send only to a small test subset before sending to the full list.
 - Keep your API key secret and rotate it if it appears in logs.
 
@@ -37,7 +33,7 @@ Install dependencies and run locally:
 ```bash
 python -m pip install --upgrade pip
 pip install requests python-dotenv
-python send_campaign.py users.csv --dry-run
+python send_campaign.py users.csv --output results.csv
 ```
 
 To run and write results:

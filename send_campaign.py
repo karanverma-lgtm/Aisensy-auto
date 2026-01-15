@@ -3,7 +3,7 @@
 
 Usage:
   pip install requests
-  python send_campaign.py users.csv --dry-run
+  python send_campaign.py users.csv
 """
 
 import csv
@@ -33,12 +33,8 @@ if not API_KEY or API_KEY == DEFAULT_API_KEY:
         "Set AISENSY_API_KEY in the environment or .env (AISENSY_API_KEY=...). "
         "For GitHub Actions, set a Secret or Variable named AISENSY_API_KEY."
     )
-    # Allow dry-run without a key, but abort for live sends
-    if "--dry-run" in sys.argv:
-        logging.warning(msg + " (Continuing because --dry-run was passed.)")
-    else:
-        logging.error(msg + " Exiting because live sends require an API key.")
-        sys.exit(1)
+    logging.error(msg + " Exiting because live sends require an API key.")
+    sys.exit(1)
 MEDIA_URL = "https://www.erickson.co.in/wp-content/uploads/2026/01/TASC1and2.jpeg"
 DEFAULT_CC = "91"   # prefix if phone is 10 digits
 
@@ -77,15 +73,8 @@ def build_payload(name, phone):
     }
 
 
-def send_row(session, name, phone, dry_run=False):
+def send_row(session, name, phone):
     payload = build_payload(name, phone)
-    if dry_run:
-        # Redact API key when logging dry-run payloads
-        redacted = dict(payload)
-        if 'apiKey' in redacted:
-            redacted['apiKey'] = '<REDACTED>'
-        logging.info("DRY RUN -> %s : %s", name, json.dumps(redacted, ensure_ascii=False))
-        return True, {"dry_run": True}
     try:
         r = session.post(API_URL, json=payload, timeout=15)
     except Exception as e:
@@ -102,7 +91,7 @@ def send_row(session, name, phone, dry_run=False):
     return False, data
 
 
-def main(path, delay, dry_run, limit=None, test_number=None, output='results.csv'):
+def main(path, delay, limit=None, test_number=None, output='results.csv'):
     session = create_session()
     success = 0
     total = 0
@@ -128,7 +117,7 @@ def main(path, delay, dry_run, limit=None, test_number=None, output='results.csv
             if test_number and normalize_phone(test_number) != phone:
                 logging.info("Skipping %s (%s) because it does not match test-number", name, phone)
                 continue
-            ok, data = send_row(session, name.strip(), phone, dry_run=dry_run)
+            ok, data = send_row(session, name.strip(), phone)
             status = 'ok' if ok else 'failed'
             msgid = None
             if isinstance(data, dict):
@@ -159,9 +148,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("csv", help="CSV file with Name and Phone headers")
     ap.add_argument("--delay", type=float, default=0.3, help="Seconds to wait between calls")
-    ap.add_argument("--dry-run", action='store_true', help="Don't actually send - print payloads")
     ap.add_argument("--limit", type=int, default=None, help="Limit number of rows to process")
     ap.add_argument("--test-number", type=str, default=None, help="Only send to this phone (normalized)")
     ap.add_argument("--output", default='results.csv', help="CSV file to write per-row results")
     args = ap.parse_args()
-    main(args.csv, args.delay, args.dry_run, args.limit, args.test_number, args.output)
+    main(args.csv, args.delay, args.limit, args.test_number, args.output)
