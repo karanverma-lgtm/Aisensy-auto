@@ -26,6 +26,11 @@ on:
 jobs:
   send:
     runs-on: ubuntu-latest
+    env:
+      CSV_PATH: ${{ github.event.inputs.csv_path || 'users.csv' }}
+      OUTPUT: ${{ github.event.inputs.output || 'results.csv' }}
+      LIMIT: ${{ github.event.inputs.limit || '' }}
+      TEST_NUMBER: ${{ github.event.inputs.test_number || '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -40,14 +45,14 @@ jobs:
         env:
           AISENSY_API_KEY: ${{ secrets.AISENSY_API_KEY != '' && secrets.AISENSY_API_KEY || vars.AISENSY_API_KEY }}
         run: |
-          args="--delay 0.3 --output \"${{ github.event.inputs.output }}\""
-          if [ -n "${{ github.event.inputs.limit }}" ]; then args="$args --limit ${{ github.event.inputs.limit }}"; fi
-          if [ -n "${{ github.event.inputs.test_number }}" ]; then args="$args --test-number '${{ github.event.inputs.test_number }}'"; fi
-          python send_campaign.py "${{ github.event.inputs.csv_path }}" $args
+          args="--delay 0.3 --output \"${OUTPUT}\""
+          if [ -n "${LIMIT}" ]; then args="$args --limit ${LIMIT}"; fi
+          if [ -n "${TEST_NUMBER}" ]; then args="$args --test-number '${TEST_NUMBER}'"; fi
+          python send_campaign.py "${CSV_PATH}" $args
         shell: bash
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: results
-          path: ${{ github.event.inputs.output }}
+          path: ${{ env.OUTPUT }}
