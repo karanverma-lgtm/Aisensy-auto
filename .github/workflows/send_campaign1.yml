@@ -27,7 +27,7 @@ jobs:
   send:
     runs-on: ubuntu-latest
     env:
-      CSV_PATH: ${{ github.event.inputs.csv_path || 'users.csv' }}
+      CSV_PATH: ${{ github.event.inputs.csv_path || 'users1.csv' }}
       OUTPUT: ${{ github.event.inputs.output || 'results.csv' }}
       LIMIT: ${{ github.event.inputs.limit || '' }}
       TEST_NUMBER: ${{ github.event.inputs.test_number || '' }}
