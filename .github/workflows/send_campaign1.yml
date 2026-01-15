@@ -1,4 +1,4 @@
-name: Send Campaign
+name: Send Campaign1
 
 on:
   workflow_dispatch:
