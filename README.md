@@ -5,6 +5,13 @@ This repository contains `send_campaign.py` which reads a CSV (`Name,Phone`) and
 ## Setup
 1. Add a GitHub repository and push this project.
 2. Add a repository secret `AISENSY_API_KEY` with your API key (Settings → Secrets → Actions).
+3. (Optional) For local testing, create a `.env` file in the repository root with:
+
+```env
+AISENSY_API_KEY=your_api_key_here
+```
+
+The script uses `python-dotenv` to load `.env` automatically; `.env` is included in `.gitignore` and must not be committed.
 
 ## GitHub Actions
 A workflow at `.github/workflows/send_campaign.yml` provides a `workflow_dispatch` trigger with inputs:
@@ -29,7 +36,7 @@ Install dependencies and run locally:
 
 ```bash
 python -m pip install --upgrade pip
-pip install requests
+pip install requests python-dotenv
 python send_campaign.py users.csv --dry-run
 ```
 

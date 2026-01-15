@@ -15,9 +15,15 @@ import argparse
 import logging
 import requests
 from requests.adapters import HTTPAdapter, Retry
+from dotenv import load_dotenv
+
+# Load .env into environment (if a .env file is present in repo root)
+load_dotenv()
 
 API_URL = "https://backend.aisensy.com/campaign/t1/api/v2"
 API_KEY = os.getenv("AISENSY_API_KEY", "<INSERT_API_KEY>")
+if not API_KEY or API_KEY == "<INSERT_API_KEY>":
+    logging.warning("AISENSY_API_KEY is not set. Please add it as an environment variable or in a .env file (AISENSY_API_KEY=...)")
 MEDIA_URL = "https://www.erickson.co.in/wp-content/uploads/2026/01/TASC1and2.jpeg"
 DEFAULT_CC = "91"   # prefix if phone is 10 digits
 
