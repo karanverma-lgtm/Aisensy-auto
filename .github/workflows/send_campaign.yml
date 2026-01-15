@@ -19,6 +19,9 @@ on:
         description: 'Results output file'
         required: false
         default: 'results.csv'
+  schedule:
+    # 11:00 AM IST = 05:30 AM UTC
+    - cron: '30 5 * * *'
 
 jobs:
   send:

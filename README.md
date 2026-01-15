@@ -19,6 +19,7 @@ A workflow at `.github/workflows/send_campaign.yml` provides a `workflow_dispatc
 - `limit` (optional)
 - `test_number` (optional)
 - `output` (default: `results.csv`)
+It also runs on a schedule at 11:00 AM IST daily.
 
 ### How it works
 - The *send* job runs using `AISENSY_API_KEY` and uploads results as an artifact.
